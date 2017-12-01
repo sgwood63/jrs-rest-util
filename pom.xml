@@ -1,0 +1,79 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.jaspersoft.jasperserver</groupId>
+  <artifactId>jrs-rest-util</artifactId>
+  <version>1.0.0</version>
+  <packaging>jar</packaging>
+
+  <name>REST based Utilities for JasperReports Server</name>
+  <url>https://github.com/sgwood63/jrs-rest-util</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+    	<groupId>com.jaspersoft</groupId>
+    	<artifactId>jrs-rest-java-client</artifactId>
+    	<version>6.4.0</version>
+    </dependency>
+    <dependency>
+    	<groupId>net.sf.jasperreports</groupId>
+    	<artifactId>jasperreports</artifactId>
+    	<version>6.4.2</version>
+    </dependency>
+
+    <dependency>
+    	<groupId>com.jaspersoft.jasperreports</groupId>
+    	<artifactId>jasperreports-highcharts</artifactId>
+    	<version>6.4.2</version>
+    </dependency>
+    <dependency>
+    	<groupId>javax.servlet</groupId>
+    	<artifactId>javax.servlet-api</artifactId>
+    	<version>3.0.1</version>
+    </dependency>
+    <dependency>
+    	<groupId>com.jaspersoft.jasperreports</groupId>
+    	<artifactId>jasperreports-fusion</artifactId>
+    	<version>6.4.1</version>
+    </dependency>
+    <dependency>
+    	<groupId>jaspersoft.ji-pro</groupId>
+    	<artifactId>ji-gyroscope</artifactId>
+    	<version>6.4.2</version>
+    </dependency>
+    <dependency>
+    	<groupId>com.jaspersoft.jasperreports</groupId>
+    	<artifactId>jasperreports-pro</artifactId>
+    	<version>6.4.1</version>
+    </dependency>
+  </dependencies>
+  <scm>
+  	<url>scm:git:http://github.com/sgwood63/jrs-rest-util</url>
+  	<connection>scm:git:http://github.com/sgwood63/jrs-rest-util</connection>
+  	<tag>HEAD</tag>
+  </scm>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

@@ -4,7 +4,7 @@
 
   <groupId>com.jaspersoft.jasperserver</groupId>
   <artifactId>jrs-rest-util</artifactId>
-  <version>1.0.0</version>
+  <version>7.2.0</version>
   <packaging>jar</packaging>
 
   <name>REST based Utilities for JasperReports Server</name>
@@ -24,38 +24,49 @@
     <dependency>
     	<groupId>com.jaspersoft</groupId>
     	<artifactId>jrs-rest-java-client</artifactId>
-    	<version>6.4.0</version>
+    	<version>7.2.0</version>
     </dependency>
     <dependency>
     	<groupId>net.sf.jasperreports</groupId>
     	<artifactId>jasperreports</artifactId>
-    	<version>6.4.2</version>
+    	<version>6.8.1</version>
     </dependency>
 
-    <dependency>
-    	<groupId>com.jaspersoft.jasperreports</groupId>
-    	<artifactId>jasperreports-highcharts</artifactId>
-    	<version>6.4.2</version>
-    </dependency>
+    <!--  dependency>
+    	<groupId>com.jaspersoft.jasperserver</groupId>
+	    <artifactId>jasperserver-jax-rs-rest</artifactId>
+    	<version>7.2.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>mondrian</groupId>
+                    <artifactId>mondrian</artifactId>
+                </exclusion>
+                <exclusion>
+                	<groupId>axis.axis-saaj</groupId>
+                	<artifactId>saaj-ri</artifactId>
+                </exclusion>
+            </exclusions>
+    </dependency -->
+    
     <dependency>
     	<groupId>javax.servlet</groupId>
     	<artifactId>javax.servlet-api</artifactId>
     	<version>3.0.1</version>
     </dependency>
     <dependency>
-    	<groupId>com.jaspersoft.jasperreports</groupId>
-    	<artifactId>jasperreports-fusion</artifactId>
-    	<version>6.4.1</version>
+		<groupId>com.jaspersoft.jasperreports</groupId>
+		<artifactId>jasperreports-license</artifactId>
+		<version>7.2.0</version>
     </dependency>
     <dependency>
     	<groupId>jaspersoft.ji-pro</groupId>
     	<artifactId>ji-gyroscope</artifactId>
-    	<version>6.4.2</version>
+    	<version>7.2.0</version>
     </dependency>
     <dependency>
     	<groupId>com.jaspersoft.jasperreports</groupId>
     	<artifactId>jasperreports-pro</artifactId>
-    	<version>6.4.1</version>
+    	<version>7.1.0</version>
     </dependency>
   </dependencies>
   <scm>
@@ -65,15 +76,41 @@
   </scm>
   <build>
     <plugins>
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>3.1.0</version>
-        <configuration>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-        </configuration>
-      </plugin>
+		<plugin>
+		    <groupId>org.apache.maven.plugins</groupId>
+		    <artifactId>maven-dependency-plugin</artifactId>
+		    <executions>
+		        <execution>
+		            <id>copy-dependencies</id>
+		            <phase>prepare-package</phase>
+		            <goals>
+		                <goal>copy-dependencies</goal>
+		            </goals>
+		            <configuration>
+		                <outputDirectory>${project.build.directory}/lib</outputDirectory>
+		                <overWriteReleases>false</overWriteReleases>
+		                <overWriteSnapshots>false</overWriteSnapshots>
+		                <overWriteIfNewer>true</overWriteIfNewer>
+		            </configuration>
+		        </execution>
+		    </executions>
+		</plugin>
+		
+		<!--  plugin>
+		    <groupId>org.apache.maven.plugins</groupId>
+		    <artifactId>maven-jar-plugin</artifactId>
+		    <configuration>
+		        <archive>
+		            <manifest>
+		                <addClasspath>true</addClasspath>
+		                <classpathPrefix>lib</classpathPrefix>
+		            </manifest>
+		            <manifestEntries>
+		                <Class-Path>lib/</Class-Path>
+		            </manifestEntries>
+		        </archive>
+		    </configuration>
+		</plugin -->
     </plugins>
   </build>
 </project>

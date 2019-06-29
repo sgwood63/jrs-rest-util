@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
 
@@ -95,13 +94,14 @@ public class App
     	try {
 			argMap = getArgs(args);
 		} catch (Exception e1) {
-			e1.printStackTrace();
+			log.error("getArgs fail", e1);
 			return;
 		}
     	
     	if (argMap.containsKey("configFile")) {
     		argMap = getProperties(argMap.getProperty("configFile"));
     		if (argMap.isEmpty()) {
+    			log.error("empty configFile");
     			return;
     		}
     	}
@@ -147,7 +147,7 @@ public class App
     		}
     	log.info("done");
     	} catch (Exception e) {
-    		e.printStackTrace();
+    		log.error("top level error", e);
     	} finally {
     		if (session != null) session.logout();
     	}
@@ -623,6 +623,7 @@ public class App
     	String folderToSearch = null;
     	String origRoot = null;
     	String newRoot = null;
+    	Boolean excludePublicFolder = false;
     	
     	if (argMap.containsKey("folderToSearch"))
     		folderToSearch = argMap.getProperty("folderToSearch");
@@ -632,6 +633,9 @@ public class App
     	
     	if (argMap.containsKey("newRoot"))
     		newRoot = argMap.getProperty("newRoot");
+    	
+    	if (argMap.containsKey("excludePublicFolder"))
+    		excludePublicFolder = Boolean.valueOf(argMap.getProperty("excludePublicFolder"));
     	
 		if (folderToSearch == null || origRoot == null || newRoot == null) {
 			log.info("Stopping updateDataReferences. Missing values: folderToSearch: " + folderToSearch + 
@@ -660,8 +664,13 @@ public class App
 
     	Integer count = 0;
 		for (ClientResourceLookup resourceLookup : result.getEntity().getResourceLookups()) {
+			
+			if (excludePublicFolder && resourceLookup.getUri().startsWith("/public")) {
+    			log.debug("Ignoring " + resourceLookup.getUri() + " because it is in /public");
+				continue;
+			}
 			count++;
-    		log.info("Processing " + resourceLookup.getUri());
+    		log.debug("Processing " + resourceLookup.getUri());
 	    	
 	    	/*
 	    	 * Will see jndiJdbcDataSource and folder
@@ -687,10 +696,10 @@ public class App
 			    	} else if (resourceLookup.getResourceType().equalsIgnoreCase("file")) {
 			    		updateJRXMLFile(resourceLookup, session, origRoot, newRoot);
 			    	} else {
-		    			log.info("Ignoring " + resourceLookup.getUri() + " because " + resourceLookup.getResourceType() + " is not a focus");
+		    			log.debug("Ignoring " + resourceLookup.getUri() + " because " + resourceLookup.getResourceType() + " is not a focus");
 			    	}
 	    		} else {
-	    			log.info("Ignoring " + resourceLookup.getUri() + " because it is not in the target folder");
+	    			log.debug("Ignoring " + resourceLookup.getUri() + " because it is not in the target folder");
 	    		}
     		} catch (Exception e) {
     			log.error("Resource update exception. resource # in list: " + count, e);
@@ -712,20 +721,23 @@ public class App
     	ClientReportUnit ru = (ClientReportUnit) resourceResult.getEntity();
 	    // update the resource
 		ClientReferenceableDataSource ds = ru.getDataSource();
+
+		log.debug(ru.toString());
+
 		if (ds != null  && ds.getUri().startsWith(origRoot)) {
-			log.info(rl.getUri() + " :" + rl.getResourceType());
-			log.info("\tOrig RU DS URI " + ds.getUri());
+			log.info(rl.getUri() + " : " + rl.getResourceType());
 			String newDSURI = newRoot + ds.getUri().substring(origRoot.length());
-			log.info("\tNew RU DS URI " + newDSURI);
+			log.info("\tOrig RU DS URI " + ds.getUri() + ", New RU DS URI " + newDSURI);
 
 			ClientReference newDS = new ClientReference(newDSURI);
 			ru.setDataSource(newDS);
 
+			log.debug(ru.toString());
 			OperationResult<ClientResource> resourceUpdate = session
 		    		.resourcesService()
 			        .resource(ru.getUri())
 			        .createOrUpdate(ru);
-			
+
 			log.info("\tUpdated to " + ru.getDataSource().getUri());
 		}
     }
@@ -743,11 +755,10 @@ public class App
 		ClientReferenceableDataSource ds = adv.getDataSource();
 		
 		if (ds.getUri().startsWith(origRoot)) {		
-	    	log.info(rl.getUri() + " :" + rl.getResourceType());
-			log.info("\tOrig Adhoc Data View DS URI " + ds.getUri());
+	    	log.info(rl.getUri() + " : " + rl.getResourceType());
 			
 			String newDSURI = newRoot + ds.getUri().substring(origRoot.length());
-			log.info("\tNew Adhoc Data View DS URI " + newDSURI);
+			log.info("\tOrig Adhoc Data View DS URI " + ds.getUri() + ", new ad hoc Data View DS URI " + newDSURI);
 
 			ClientReference newDS = new ClientReference(newDSURI);
 			adv.setDataSource(newDS);
@@ -774,9 +785,8 @@ public class App
 		ClientReferenceableDataSource ds = domain.getDataSource();
 		if (ds != null  && ds.getUri().startsWith(origRoot)) {
 			log.info(rl.getUri() + " :" + rl.getResourceType());
-			log.info("\tOrig Domain DS URI " + ds.getUri());
 			String newDSURI = newRoot + ds.getUri().substring(origRoot.length());
-			log.info("\tNew Domain DS URI " + newDSURI);
+			log.info("\tOrig Domain DS URI " + ds.getUri() + ", New Domain DS URI " + newDSURI);
 
 			ClientReference newDS = new ClientReference(newDSURI);
 			domain.setDataSource(newDS);
@@ -815,16 +825,20 @@ public class App
 		        .resource(rl.getUri())
 		        .downloadBinary();
     	
+    	if (newRoot == null || newRoot.trim().length() == 0) {
+    		newRoot = "";
+    	}
+    	
     	try {
 	    	JasperDesign jasperDesign = JRXmlLoader.load(resourceStream.getEntity());
 	    	Boolean updated = false;
 	    	
 	    	for (JRExpression expr : jasperDesign.getExpressions()) {
 				JRDesignExpression dExpr = (JRDesignExpression) expr;
-				log.debug(expr.getText());
+				//log.debug(expr.getText());
 				String exprText = dExpr.getText();
 				// expressions with "repo:
-				if (exprText.startsWith("\"repo:" + origRoot)) {
+				if (exprText != null && exprText.startsWith("\"repo:" + origRoot)) {
 					String newURI = "\"repo:" + newRoot + exprText.substring(origRoot.length() + 6);
 					log.info("Updated " + exprText + " to " + newURI);
 					dExpr.setText(newURI);
@@ -835,9 +849,15 @@ public class App
 	    	JRPropertiesMap map = jasperDesign.getPropertiesMap();
 	    	for (String propertyName : map.getPropertyNames()) {
 	    		String propertyValue = map.getProperty(propertyName);
-				if (propertyValue.startsWith(origRoot)) {
+				if (propertyValue != null && propertyValue.startsWith(origRoot)) {
 					String newURI = newRoot + propertyValue.substring(origRoot.length());
 					log.info("Updated property: " + propertyName + "  from " + propertyValue + " to " + newURI);
+					map.setProperty(propertyName, newURI);
+					updated = true;
+				}
+				if (propertyValue != null && propertyValue.startsWith("repo:" + origRoot)) {
+					String newURI = "repo:" + newRoot + propertyValue.substring(origRoot.length() + 5);
+					log.info("Updated " + propertyValue + " to " + newURI);
 					map.setProperty(propertyName, newURI);
 					updated = true;
 				}
@@ -858,7 +878,7 @@ public class App
 				log.info("\tUpdated expressions in " + rl.getUri());
 	    	}
     	} catch (Exception e) {
-    		log.error("failed JRXML update: " + e.getMessage());
+    		log.error("failed JRXML load and update", e);
     	}
 	}
 
@@ -908,8 +928,7 @@ public class App
 				argMap.load(is);
     			log.info("properties loaded as InputStream: " + filename);
 			} catch (IOException e) {
-    			log.info("properties load error as InputStream - IOException: " + filename);
-				e.printStackTrace();
+    			log.info("properties load error as InputStream - IOException: " + filename, e);
 			}
 		}
 		return argMap;

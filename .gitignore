@@ -1,0 +1,5 @@
+
+target
+distribution/lib
+distribution/logs
+distribution/*.jar

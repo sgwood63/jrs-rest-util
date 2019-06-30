@@ -1,12 +1,19 @@
 @echo off
 
-rem %1: configuration file
+echo JasperReports Server resources update with %*
 
-echo JasperReports Server resources update with %1
-rem     -Dcom.jaspersoft.jasperreports.license.location=C:\Dev\Jasper\License\jasperserver.license ^
-rem 	-Dcom.jaspersoft.jasperreports.license.location=C:\Dev\Jasper\License\jasperreports.license \
-rem	-Djs.license.directory=C:\Users\swood\Documents\License ^
+rem Update the js.license.directory to point to a directory containing a “jasperserver.license”.
+
+shift
+set args=%0
+
+:start
+if [%0] == [] goto done
+set args=%args% %0
+shift
+goto start
+:done
 
 java -classpath ".;./*;./lib/*" -Dlog4j.configuration=file:log4j.properties ^
-    -Dcom.jaspersoft.jasperreports.license.location=C:\Dev\Jasper\License\jasperreports.license ^
-	com.jaspersoft.jasperserver.rest.util.App -configFile %1
+    -Djs.license.directory=C:\Users\swood\Documents\License ^
+	com.jaspersoft.jasperserver.rest.util.App %args%

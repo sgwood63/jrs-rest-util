@@ -99,12 +99,15 @@ public class App
 		}
     	
     	if (argMap.containsKey("configFile")) {
-    		argMap = getProperties(argMap.getProperty("configFile"));
-    		if (argMap.isEmpty()) {
-    			log.error("empty configFile");
-    			return;
-    		}
+    		Properties configArgs = getProperties(argMap.getProperty("configFile"));
+    		configArgs.putAll(argMap);
+    		argMap = configArgs;
     	}
+    	
+		if (argMap.isEmpty()) {
+			log.error("no configuration");
+			return;
+		}
 
     	JasperserverRestClient client;
     	RestClientConfiguration configuration = null;

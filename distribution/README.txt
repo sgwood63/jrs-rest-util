@@ -1,5 +1,5 @@
 
-Process to convert Harris Data from single tenant to multi-tenant
+Process to convert a repository from single tenant to multi-tenant
 
 Assumptions
 

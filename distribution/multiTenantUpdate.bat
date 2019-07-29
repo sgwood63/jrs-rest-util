@@ -2,9 +2,13 @@
 
 echo JasperReports Server resources update with %*
 
-rem Update the js.license.directory to point to a directory containing a “jasperserver.license”.
-
 shift
+
+rem first arg must be the license directory
+set licenseDir = %0
+shift
+echo Using license in directory: %licenseDir%
+
 set args=%0
 
 :start
@@ -15,5 +19,5 @@ goto start
 :done
 
 java -classpath ".;./*;./lib/*" -Dlog4j.configuration=file:log4j.properties ^
-    -Djs.license.directory=C:\Users\swood\Documents\License ^
+    -Djs.license.directory=%licenseDir% ^
 	com.jaspersoft.jasperserver.rest.util.App %args%
